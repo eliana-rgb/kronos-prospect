@@ -44,7 +44,7 @@ Responda SOMENTE com um array JSON válido. Zero texto fora do JSON. Zero markdo
 
     if (!response.ok) {
       const err = await response.text();
-      return res.status(response.status).json({ error: err });
+      return res.status(200).json({ error: `API ${response.status}: ${err}` });
     }
 
     const data = await response.json();
