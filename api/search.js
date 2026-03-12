@@ -38,8 +38,7 @@ Responda SOMENTE com um array JSON válido. Zero texto fora do JSON. Zero markdo
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
         max_tokens: 4000,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: [{ role: 'user', content: prompt }]
+                messages: [{ role: 'user', content: prompt }]
       })
     });
 
