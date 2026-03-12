@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KRONOS PROSPECTOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C9A84C; --gold-dim: rgba(201,168,76,0.15);
+  --green: #0D1F15; --green-mid: #1A3A25; --green-card: #142B1D;
+  --accent: #3DBA6F; --cream: #F0EBE0; --muted: rgba(240,235,224,0.45);
+  --border: rgba(201,168,76,0.18);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Syne',sans-serif; background:var(--green); color:var(--cream); min-height:100vh; }
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background: radial-gradient(ellipse 80% 60% at 20% 10%,rgba(61,186,111,.06) 0%,transparent 60%),
+              radial-gradient(ellipse 60% 50% at 80% 80%,rgba(201,168,76,.05) 0%,transparent 60%);
+}
+header {
+  position:relative; z-index:1; padding:2rem 2.5rem 1.5rem;
+  border-bottom:1px solid var(--border); display:flex; align-items:center;
+  justify-content:space-between; flex-wrap:wrap; gap:1rem;
+}
+.logo { display:flex; align-items:center; gap:1rem; }
+.logo-mark {
+  width:42px; height:42px; border:2px solid var(--gold); border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Bebas Neue',sans-serif; font-size:1.1rem; color:var(--gold);
+}
+.logo-text { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; letter-spacing:.15em; }
+.logo-sub { font-family:'DM Mono',monospace; font-size:.58rem; color:var(--gold); letter-spacing:.2em; text-transform:uppercase; margin-top:2px; }
+.header-badge {
+  font-family:'DM Mono',monospace; font-size:.62rem; color:var(--accent);
+  background:rgba(61,186,111,.1); border:1px solid rgba(61,186,111,.25);
+  padding:.4rem 1rem; border-radius:100px; letter-spacing:.1em;
+}
+main { position:relative; z-index:1; max-width:980px; margin:0 auto; padding:2.5rem 2rem 4rem; }
+.search-panel {
+  background:var(--green-card); border:1px solid var(--border);
+  border-radius:16px; padding:2rem; margin-bottom:2rem;
+}
+.panel-title {
+  font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:.12em;
+  color:var(--gold); margin-bottom:1.5rem; display:flex; align-items:center; gap:.7rem;
+}
+.panel-title::after { content:''; flex:1; height:1px; background:var(--border); }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+@media(max-width:600px){ .form-row { grid-template-columns:1fr; } }
+.field label {
+  display:block; font-family:'DM Mono',monospace; font-size:.6rem; color:var(--gold);
+  letter-spacing:.15em; text-transform:uppercase; margin-bottom:.5rem;
+}
+.field input, .field select {
+  width:100%; background:rgba(255,255,255,.04); border:1px solid var(--border);
+  border-radius:8px; padding:.75rem 1rem; color:var(--cream);
+  font-family:'Syne',sans-serif; font-size:.88rem; outline:none; transition:border-color .2s;
+}
+.field input:focus, .field select:focus { border-color:var(--gold); }
+.field select option { background:var(--green-mid); }
+
+.batch-control {
+  background:rgba(201,168,76,.06); border:1px solid var(--border);
+  border-radius:10px; padding:1rem 1.2rem; margin-bottom:1rem;
+  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+}
+.batch-label { font-family:'DM Mono',monospace; font-size:.65rem; color:var(--gold); letter-spacing:.1em; }
+.batch-desc { font-size:.78rem; color:var(--muted); margin-top:.2rem; }
+.batch-toggle {
+  display:flex; gap:.5rem;
+}
+.batch-btn {
+  background:transparent; border:1px solid var(--border); color:var(--muted);
+  font-family:'DM Mono',monospace; font-size:.65rem; padding:.4rem .9rem;
+  border-radius:6px; cursor:pointer; transition:all .15s; letter-spacing:.05em;
+}
+.batch-btn.active { background:var(--gold-dim); border-color:var(--gold); color:var(--gold); }
+
+.search-btn {
+  width:100%; padding:1rem; background:var(--gold); border:none; border-radius:10px;
+  font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:.15em;
+  color:var(--green); cursor:pointer; transition:all .2s; margin-top:.5rem;
+  display:flex; align-items:center; justify-content:center; gap:.7rem;
+}
+.search-btn:hover { background:#E8C97A; transform:translateY(-1px); }
+.search-btn:disabled { background:rgba(201,168,76,.3); color:rgba(13,31,21,.5); cursor:not-allowed; transform:none; }
+
+.progress-panel {
+  background:var(--green-card); border:1px solid var(--border);
+  border-radius:10px; padding:1.2rem 1.5rem; margin-bottom:1.5rem; display:none;
+}
+.progress-panel.show { display:block; }
+.progress-top { display:flex; align-items:center; gap:.8rem; margin-bottom:.8rem; }
+.spinner {
+  width:16px; height:16px; border:2px solid rgba(61,186,111,.2);
+  border-top-color:var(--accent); border-radius:50%;
+  animation:spin .8s linear infinite; flex-shrink:0;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.progress-msg { font-family:'DM Mono',monospace; font-size:.75rem; color:var(--accent); }
+.progress-bar-wrap { height:4px; background:rgba(255,255,255,.06); border-radius:100px; overflow:hidden; }
+.progress-bar-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--gold)); border-radius:100px; transition:width .5s ease; width:0%; }
+.progress-count { font-family:'DM Mono',monospace; font-size:.62rem; color:var(--muted); margin-top:.5rem; }
+
+.results-header { display:none; align-items:center; justify-content:space-between; margin-bottom:1.2rem; flex-wrap:wrap; gap:.8rem; }
+.results-header.visible { display:flex; }
+.results-count { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:.1em; }
+.results-count span { color:var(--gold); }
+.export-btn {
+  background:transparent; border:1px solid var(--border); color:var(--gold);
+  font-family:'DM Mono',monospace; font-size:.65rem; padding:.5rem 1.2rem;
+  border-radius:6px; cursor:pointer; letter-spacing:.1em; text-transform:uppercase; transition:all .2s;
+}
+.export-btn:hover { background:var(--gold-dim); border-color:var(--gold); }
+
+.results-grid { display:grid; gap:1rem; }
+.result-card {
+  background:var(--green-card); border:1px solid var(--border); border-radius:12px;
+  padding:1.5rem; transition:border-color .2s,transform .2s;
+  animation:fadeIn .4s ease forwards; opacity:0;
+}
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.result-card:hover { border-color:rgba(201,168,76,.4); transform:translateY(-2px); }
+.card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1rem; }
+.card-name { font-weight:800; font-size:1rem; line-height:1.3; }
+.card-responsavel { font-family:'DM Mono',monospace; font-size:.68rem; color:var(--gold); margin-top:.3rem; }
+.card-estado {
+  font-family:'DM Mono',monospace; font-size:.6rem; color:var(--muted);
+  background:rgba(255,255,255,.05); padding:.25rem .7rem; border-radius:100px; white-space:nowrap; flex-shrink:0;
+}
+.card-contacts { display:flex; flex-wrap:wrap; gap:.6rem; margin-bottom:1rem; }
+.contact-chip {
+  display:flex; align-items:center; gap:.4rem; background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08); border-radius:6px; padding:.35rem .7rem;
+  font-family:'DM Mono',monospace; font-size:.68rem; color:var(--cream);
+  text-decoration:none; transition:border-color .15s;
+}
+.contact-chip:hover { border-color:var(--gold); color:var(--gold); }
+.chip-na { color:var(--muted)!important; border-color:transparent!important; cursor:default; }
+.card-desc { font-size:.82rem; color:var(--muted); line-height:1.6; border-top:1px solid var(--border); padding-top:.8rem; }
+
+.state-box { text-align:center; padding:4rem 2rem; display:none; }
+.state-box.visible { display:block; }
+.state-emoji { font-size:2.5rem; margin-bottom:1rem; }
+.state-title { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:.1em; margin-bottom:.5rem; }
+.state-msg { font-size:.85rem; color:var(--muted); }
+
+.legal-note { font-family:'DM Mono',monospace; font-size:.6rem; color:rgba(240,235,224,.2); text-align:center; margin-top:3rem; line-height:1.7; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-mark">KR</div>
+    <div>
+      <div class="logo-text">KRONOS PROSPECTOR</div>
+      <div class="logo-sub">Mapeamento de Consultorias · Crédito Rural</div>
+    </div>
+  </div>
+  <div class="header-badge">⚡ IA + Web Search</div>
+</header>
+
+<main>
+  <div class="search-panel">
+    <div class="panel-title">🔍 Parâmetros de Busca</div>
+    <div class="form-row">
+      <div class="field">
+        <label>Estado / Região</label>
+        <select id="estado">
+          <option value="todo Brasil">Todo Brasil</option>
+          <option value="Acre">Acre</option><option value="Alagoas">Alagoas</option>
+          <option value="Amapá">Amapá</option><option value="Amazonas">Amazonas</option>
+          <option value="Bahia">Bahia</option><option value="Ceará">Ceará</option>
+          <option value="Distrito Federal">Distrito Federal</option>
+          <option value="Espírito Santo">Espírito Santo</option>
+          <option value="Goiás">Goiás</option><option value="Maranhão">Maranhão</option>
+          <option value="Mato Grosso">Mato Grosso</option>
+          <option value="Mato Grosso do Sul">Mato Grosso do Sul</option>
+          <option value="Minas Gerais">Minas Gerais</option>
+          <option value="Pará" selected>Pará</option>
+          <option value="Paraíba">Paraíba</option><option value="Paraná">Paraná</option>
+          <option value="Pernambuco">Pernambuco</option><option value="Piauí">Piauí</option>
+          <option value="Rio de Janeiro">Rio de Janeiro</option>
+          <option value="Rio Grande do Norte">Rio Grande do Norte</option>
+          <option value="Rio Grande do Sul">Rio Grande do Sul</option>
+          <option value="Rondônia">Rondônia</option><option value="Roraima">Roraima</option>
+          <option value="Santa Catarina">Santa Catarina</option>
+          <option value="São Paulo">São Paulo</option><option value="Sergipe">Sergipe</option>
+          <option value="Tocantins">Tocantins</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Especialização</label>
+        <select id="especialidade">
+          <option value="crédito rural">Crédito Rural (geral)</option>
+          <option value="BNDES crédito rural">BNDES / Pronaf</option>
+          <option value="renegociação dívida rural">Renegociação de Dívidas</option>
+          <option value="CPR financiamento rural">CPR / Financiamento</option>
+          <option value="consultoria agronegócio crédito">Agronegócio / Estruturação</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Palavra-chave adicional (opcional)</label>
+        <input type="text" id="keyword" placeholder="Ex: Sorriso, cooperativa, MATOPIBA…">
+      </div>
+      <div class="field">
+        <label>Modo de busca</label>
+        <div class="batch-toggle" style="margin-top:.5rem">
+          <button class="batch-btn active" id="btn-normal" onclick="setMode('normal')">Rápido (≈15)</button>
+          <button class="batch-btn" id="btn-deep" onclick="setMode('deep')">Profundo (≈50)</button>
+          <button class="batch-btn" id="btn-full" onclick="setMode('full')">Completo (máx)</button>
+        </div>
+      </div>
+    </div>
+    <button class="search-btn" id="searchBtn" onclick="runSearch()">
+      <span>🌾</span> MAPEAR CONSULTORIAS AGORA
+    </button>
+  </div>
+
+  <div class="progress-panel" id="progressPanel">
+    <div class="progress-top">
+      <div class="spinner"></div>
+      <div class="progress-msg" id="progressMsg">Iniciando busca…</div>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <div class="progress-count" id="progressCount"></div>
+  </div>
+
+  <div class="results-header" id="resultsHeader">
+    <div class="results-count"><span id="countNum">0</span> consultorias encontradas</div>
+    <button class="export-btn" onclick="exportCSV()">⬇ Exportar CSV</button>
+  </div>
+
+  <div class="results-grid" id="resultsGrid"></div>
+
+  <div class="state-box visible" id="emptyState">
+    <div class="state-emoji">🌾</div>
+    <div class="state-title">Configure e busque</div>
+    <div class="state-msg">Selecione os parâmetros acima e clique em Mapear.</div>
+  </div>
+
+  <div class="state-box" id="errorState">
+    <div class="state-emoji">⚠️</div>
+    <div class="state-title">Erro na busca</div>
+    <div class="state-msg" id="errorMsg"></div>
+  </div>
+
+  <div class="legal-note">
+    Dados extraídos de fontes públicas via IA + web search. Verifique antes de usar.<br>
+    KRONOS.AG · KRONOS PROSPECTOR · Uso interno
+  </div>
+</main>
+
+<script>
+let allResults = [];
+let searchMode = 'normal';
+
+// mode config: [batchSize, totalBatches]
+const modeConfig = {
+  normal: { batchSize: 15, batches: 1 },
+  deep:   { batchSize: 15, batches: 3 },
+  full:   { batchSize: 15, batches: 6 }
+};
+
+function setMode(m) {
+  searchMode = m;
+  document.querySelectorAll('.batch-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + m).classList.add('active');
+}
+
+function setProgress(msg, pct, count) {
+  document.getElementById('progressMsg').textContent = msg;
+  document.getElementById('progressFill').style.width = pct + '%';
+  if (count !== undefined) document.getElementById('progressCount').textContent = count + ' consultorias encontradas até agora…';
+}
+
+async function fetchBatch(estado, especialidade, keyword, offset, batchSize) {
+  const res = await fetch('/api/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ estado, especialidade, keyword, quantidade: batchSize, offset })
+  });
+  if (!res.ok) throw new Error(`Erro servidor: ${res.status}`);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.results || [];
+}
+
+async function runSearch() {
+  const estado = document.getElementById('estado').value;
+  const especialidade = document.getElementById('especialidade').value;
+  const keyword = document.getElementById('keyword').value.trim();
+  const { batchSize, batches } = modeConfig[searchMode];
+
+  // Reset
+  allResults = [];
+  document.getElementById('resultsGrid').innerHTML = '';
+  document.getElementById('resultsHeader').classList.remove('visible');
+  document.getElementById('emptyState').classList.remove('visible');
+  document.getElementById('errorState').classList.remove('visible');
+  document.getElementById('progressPanel').classList.add('show');
+  document.getElementById('searchBtn').disabled = true;
+  document.getElementById('progressCount').textContent = '';
+
+  try {
+    for (let i = 0; i < batches; i++) {
+      const pct = Math.round(((i) / batches) * 90);
+      setProgress(
+        i === 0 ? 'Varredura inicial — Google, portais agro, LinkedIn…'
+        : i === 1 ? 'Buscando em outras regiões e fontes…'
+        : `Lote ${i+1} de ${batches} — ampliando cobertura…`,
+        pct, allResults.length
+      );
+
+      const batch = await fetchBatch(estado, especialidade, keyword, i * batchSize, batchSize);
+
+      // Deduplicate by name
+      const existingNames = new Set(allResults.map(r => r.nome?.toLowerCase().trim()));
+      const newOnes = batch.filter(r => r.nome && !existingNames.has(r.nome.toLowerCase().trim()));
+      allResults = [...allResults, ...newOnes];
+
+      // Render incrementally
+      renderBatch(newOnes, allResults.length);
+      document.getElementById('countNum').textContent = allResults.length;
+      document.getElementById('resultsHeader').classList.add('visible');
+
+      if (batch.length < batchSize * 0.5) break; // few results = exhausted
+    }
+
+    setProgress('Busca concluída!', 100, allResults.length);
+    setTimeout(() => document.getElementById('progressPanel').classList.remove('show'), 1500);
+
+  } catch (err) {
+    document.getElementById('progressPanel').classList.remove('show');
+    document.getElementById('errorState').classList.add('visible');
+    document.getElementById('errorMsg').textContent = err.message;
+  }
+
+  document.getElementById('searchBtn').disabled = false;
+  if (allResults.length === 0) document.getElementById('emptyState').classList.add('visible');
+}
+
+function renderBatch(results, totalSoFar) {
+  const grid = document.getElementById('resultsGrid');
+  results.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.style.animationDelay = `${i * 0.06}s`;
+
+    const waNum = r.telefone ? r.telefone.replace(/\D/g,'') : '';
+    const chips = [
+      r.telefone
+        ? `<a class="contact-chip" href="https://wa.me/55${waNum}" target="_blank">💬 ${r.telefone}</a>`
+        : `<span class="contact-chip chip-na">💬 Tel. não encontrado</span>`,
+      r.email
+        ? `<a class="contact-chip" href="mailto:${r.email}" target="_blank">📧 ${r.email}</a>`
+        : `<span class="contact-chip chip-na">📧 Email não encontrado</span>`,
+      r.instagram
+        ? `<a class="contact-chip" href="https://instagram.com/${r.instagram.replace('@','')}" target="_blank">📸 ${r.instagram}</a>`
+        : `<span class="contact-chip chip-na">📸 Insta não encontrado</span>`,
+      r.linkedin ? `<a class="contact-chip" href="${r.linkedin.startsWith('http')?r.linkedin:'https://'+r.linkedin}" target="_blank">💼 LinkedIn</a>` : '',
+      r.site ? `<a class="contact-chip" href="${r.site.startsWith('http')?r.site:'https://'+r.site}" target="_blank">🌐 Site</a>` : ''
+    ].join('');
+
+    card.innerHTML = `
+      <div class="card-top">
+        <div>
+          <div class="card-name">${r.nome || 'Consultoria'}</div>
+          ${r.responsavel ? `<div class="card-responsavel">👤 ${r.responsavel}</div>` : ''}
+        </div>
+        <div class="card-estado">${r.estado || estado}</div>
+      </div>
+      <div class="card-contacts">${chips}</div>
+      ${r.descricao ? `<div class="card-desc">${r.descricao}</div>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function exportCSV() {
+  if (!allResults.length) return;
+  const h = ['Nome','Responsável','Estado','Telefone','Email','Instagram','LinkedIn','Site','Descrição'];
+  const rows = allResults.map(r =>
+    [r.nome,r.responsavel,r.estado,r.telefone,r.email,r.instagram,r.linkedin,r.site,r.descricao]
+    .map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',')
+  );
+  const csv = [h.join(','),...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download = `kronos-prospector-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+</script>
+</body>
+</html>
