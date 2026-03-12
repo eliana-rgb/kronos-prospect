@@ -8,7 +8,6 @@ export default async function handler(req, res) {
   const { estado, especialidade, quantidade, keyword, offset } = req.body;
   const keywordPart = keyword ? ` com foco em ${keyword}` : '';
   const offsetPart = offset > 0 ? ` Retorne outras ${quantidade} diferentes das primeiras ${offset}.` : '';
-
   const prompt = `Você é especialista em agronegócio brasileiro. Liste ${quantidade} consultorias ou consultores de ${especialidade} no estado de ${estado}${keywordPart}.${offsetPart} Para cada um retorne JSON com: nome, responsavel, estado, telefone, email, instagram, linkedin, site, descricao. Responda SOMENTE com array JSON válido, sem markdown.`;
 
   try {
@@ -23,7 +22,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-5',
+        model: 'claude-haiku-4-5',
         max_tokens: 4000,
         messages: [{ role: 'user', content: prompt }]
       })
